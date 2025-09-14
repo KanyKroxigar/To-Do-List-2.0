@@ -1,0 +1,30 @@
+{
+"short_name": "To-Do List",
+"name": "To-Do List PWA",
+"icons": [
+{
+"src": "https://www.google.com/search?q=https://www.gstatic.com/images/branding/product/1x/keep_2020q4_48dp.png",
+"type": "image/png",
+"sizes": "48x48"
+},
+{
+"src": "https://www.google.com/search?q=https://www.gstatic.com/images/branding/product/1x/keep_2020q4_96dp.png",
+"type": "image/png",
+"sizes": "96x96"
+},
+{
+"src": "https://www.google.com/search?q=https://www.gstatic.com/images/branding/product/1x/keep_2020q4_192dp.png",
+"type": "image/png",
+"sizes": "192x192"
+},
+{
+"src": "https://www.google.com/search?q=https://www.gstatic.com/images/branding/product/1x/keep_2020q4_512dp.png",
+"type": "image/png",
+"sizes": "512x512"
+}
+],
+"start_url": ".",
+"display": "standalone",
+"theme_color": "#ffffff",
+"background_color": "#f0f0f0"
+}

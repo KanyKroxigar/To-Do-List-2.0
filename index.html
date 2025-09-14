@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .task-item:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto max-w-2xl mt-10 md:mt-20 p-4">
+        
+        <!-- App Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">My To-Do List</h1>
+            <p class="text-gray-500 mt-2">A simple way to manage your tasks.</p>
+        </header>
+
+        <!-- Task Input Form (Create) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Add a New Task</h2>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="taskInput" placeholder="What do you need to do?" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button id="addTaskBtn" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Add Task
+                </button>
+            </div>
+        </div>
+
+        <!-- Task List (Read, Update, Delete) -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Your Tasks</h2>
+            <ul id="taskList" class="space-y-4">
+                <!-- Tasks will be dynamically inserted here -->
+            </ul>
+            <p id="noTasksMessage" class="text-center text-gray-500 mt-8 hidden">You have no tasks yet. Add one above!</p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('taskInput');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskList = document.getElementById('taskList');
+            const noTasksMessage = document.getElementById('noTasksMessage');
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            const renderTasks = () => {
+                taskList.innerHTML = ''; 
+                if (tasks.length === 0) {
+                    noTasksMessage.classList.remove('hidden');
+                } else {
+                    noTasksMessage.classList.add('hidden');
+                    tasks.forEach((task, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'task-item fade-in';
+                        li.dataset.index = index;
+
+                        const taskTextSpan = document.createElement('span');
+                        taskTextSpan.textContent = task.text;
+                        taskTextSpan.className = 'flex-grow mr-4';
+                        if (task.completed) {
+                            taskTextSpan.classList.add('line-through', 'text-gray-500');
+                        }
+
+                        const buttonDiv = document.createElement('div');
+                        buttonDiv.className = 'flex items-center gap-2 flex-shrink-0';
+                        
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.innerHTML = task.completed ? 
+                            `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>`:
+                            `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+                        toggleBtn.title = task.completed ? "Mark as Incomplete" : "Mark as Complete";
+                        toggleBtn.className = 'p-1 rounded-full hover:bg-gray-200 transition';
+                        toggleBtn.onclick = () => toggleTask(index);
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 w-5 h-5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                        editBtn.title = "Edit Task";
+                        editBtn.className = 'p-2 rounded-full hover:bg-gray-200 transition';
+                        editBtn.onclick = () => editTask(index, li, taskTextSpan);
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+                        deleteBtn.title = "Delete Task";
+                        deleteBtn.className = 'p-2 rounded-full hover:bg-gray-200 transition';
+                        deleteBtn.onclick = () => deleteTask(index);
+
+                        buttonDiv.appendChild(toggleBtn);
+                        buttonDiv.appendChild(editBtn);
+                        buttonDiv.appendChild(deleteBtn);
+
+                        li.appendChild(taskTextSpan);
+                        li.appendChild(buttonDiv);
+                        taskList.appendChild(li);
+                    });
+                }
+            };
+
+            const saveTasks = () => {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            };
+
+            const addTask = () => {
+                const text = taskInput.value.trim();
+                if (text === '') {
+            
+                    alert('Please enter a task!');
+                    return;
+                }
+                tasks.push({ text: text, completed: false });
+                taskInput.value = '';
+                saveTasks();
+                renderTasks();
+            };
+
+            /**
+             * Deletes a task from the list.
+             * This function handles the "Delete" part of CRUD.
+             * @param {number} index - The index of the task to delete.
+             */
+            const deleteTask = (index) => {
+                tasks.splice(index, 1);
+                saveTasks();
+                renderTasks();
+            };
+
+            /**
+             * Toggles the completion status of a task.
+             * This is part of the "Update" operation.
+             * @param {number} index - The index of the task to toggle.
+             */
+            const toggleTask = (index) => {
+                tasks[index].completed = !tasks[index].completed;
+                saveTasks();
+                renderTasks();
+            }
+
+            /**
+             * Allows editing of a task's text.
+             * This is the main "Update" operation.
+             * @param {number} index - The index of the task to edit.
+             * @param {HTMLElement} li - The list item element being edited.
+             * @param {HTMLElement} taskTextSpan - The span element containing the task text.
+             */
+            
+            const editTask = (index, li, taskTextSpan) => {
+                const currentText = tasks[index].text;
+                const editInput = document.createElement('input');
+                editInput.type = 'text';
+                editInput.value = currentText;
+                editInput.className = 'flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = 'Save';
+                saveBtn.className = 'bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition ml-2';
+                
+     
+                li.replaceChild(editInput, taskTextSpan);
+
+                li.querySelector('div').style.display = 'none';
+                li.appendChild(saveBtn);
+                editInput.focus();
+
+                const saveEdit = () => {
+                    const newText = editInput.value.trim();
+                    if (newText) {
+                        tasks[index].text = newText;
+                        saveTasks();
+                    }
+      
+                    renderTasks();
+                };
+
+     
+                saveBtn.onclick = saveEdit;
+                
+           
+                editInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        saveEdit();
+                    } else if (e.key === 'Escape') {
+                        // Cancel edit on 'Escape'
+                        renderTasks();
+                    }
+                });
+            };
+
+
+            addTaskBtn.addEventListener('click', addTask);
+            taskInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
