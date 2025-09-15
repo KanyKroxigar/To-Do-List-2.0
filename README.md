@@ -2,6 +2,6 @@
 br
 A To-Do List web application that will run on your default browser.
 <br>
-Simply click on the ```<code>```, download the ```zip``` folder and run the ```index.html``` file to open the web application.
+Simply click on the ```<> Code```, download the ```zip``` folder and run the ```index.html``` file to open the web application.
 
 
